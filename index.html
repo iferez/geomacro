@@ -20,42 +20,48 @@
     </style>
     <h1>GEO TEST - MACRO</h1>
     <div id="cards-container" class="container"></div>
+
+    <button id="geo-button">Aceptar Geolocalización</button>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(function (position) {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
+       document.addEventListener("DOMContentLoaded", function () {
+  const geoButton = document.getElementById("geo-button");
+  
+  geoButton.addEventListener("click", function () {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(function (position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        
+        const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+        
+        fetch(nominatimUrl)
+          .then(response => response.json())
+          .then(data => {
+            const province = data.address ? data.address.state : "Unknown";
+            displayCard(province);
+          })
+          .catch(error => {
+            console.error("Error fetching province:", error);
+            displayCard("Unknown");
+          });
+      }, function (error) {
+        console.error("Error getting geolocation:", error);
+        displayCard("Unknown");
+      });
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+      displayCard("Geolocation Not Supported");
+    }
+  });
+});
 
-                    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
-
-                    fetch(nominatimUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            const province = data.address ? data.address.state : "Unknown";
-                            displayCard(province);
-                        })
-                        .catch(error => {
-                            console.error("Error fetching province:", error);
-                            displayCard("Unknown");
-                        });
-                }, function (error) {
-                    console.error("Error getting geolocation:", error);
-                    displayCard("Unknown");
-                });
-            } else {
-                console.error("Geolocation is not supported by this browser.");
-                displayCard("Geolocation Not Supported");
-            }
-        });
-
-        function displayCard(province) {
-            const cardsContainer = document.getElementById("cards-container");
-            const cardElement = document.createElement("div");
-            cardElement.classList.add("card");
-            cardElement.innerHTML = `<h2>Province:</h2><p>${province}</p>`;
-            cardsContainer.appendChild(cardElement);
-        }
+function displayCard(province) {
+  const cardsContainer = document.getElementById("cards-container");
+  const cardElement = document.createElement("div");
+  cardElement.classList.add("card");
+  cardElement.innerHTML = `<h2>Province:</h2><p>${province}</p>`;
+  cardsContainer.appendChild(cardElement);
+}
 
     </script>
 </body>
